@@ -1,4 +1,4 @@
-#include <unordered_set>
+#include <vector>
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -6,22 +6,22 @@
 
 int main() {
 
-    std::unordered_set<std::string> words;
+    std::vector<std::string> words;
     std::string line; std::ifstream in("words.txt");
 
     std::getline(in, line); in.close();
-    std::string word; std::stringstream ss(line);
+    std::string sen; std::stringstream ss(line);
 
-    while (std::getline(ss, word, ',')) words.insert(word);
+    while (std::getline(ss, sen, ',')) words.push_back(sen);
 
     std::ifstream in2("sentence.txt");
-    std::getline(in2, line);
+    std::getline(in2, line); in2.close();
 
     std::stringstream ss2(line);
     int count{};
-    while (ss2 >> word) {
-        for (auto it = words.begin(); it != words.end(); ++it) {
-            if (word.contains(*it)) ++count;
+    while (ss2 >> sen) {
+        for (const auto& word: words) {
+            if (sen.contains(word)) ++count;
         }
     }
     std::cout << count;
