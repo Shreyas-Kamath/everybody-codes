@@ -1,21 +1,26 @@
 #include <iostream>
 #include <fstream>
-#include <vector>
 #include <string>
-#include <algorithm>
+#include <vector>
 
 int main() {
-    std::string line;
-    std::ifstream in("data.txt");
-    std::vector<int> nums;
-    
-    while (std::getline(in, line)) nums.emplace_back(stoi(line));
 
-    int min_elem = *std::min_element(nums.begin(), nums.end());
+    std::vector<int> nails;
+    int min{INT_MAX};
+
+    std::string line; std::ifstream file("data.txt");
+
+    while (std::getline(file, line)) {
+        int nail = std::stoi(line);
+        nails.push_back(nail);
+
+        min = std::min(min, nail);
+    }
 
     int ans{};
 
-    for (const auto& num: nums) ans += num - min_elem;
-
+    for (const auto& nail: nails) {
+        ans += nail - min;
+    }
     std::cout << ans;
 }

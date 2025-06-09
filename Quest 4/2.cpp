@@ -1,22 +1,26 @@
 #include <iostream>
 #include <fstream>
-#include <vector>
 #include <string>
-#include <algorithm>
+#include <vector>
 
 int main() {
-    std::string line;
-    std::ifstream in("data2.txt");
-    std::vector<int> nums;
-    
-    while (std::getline(in, line)) nums.emplace_back(stoi(line));
 
-    std::sort(nums.begin(), nums.end());
+    std::vector<int> nails;
+    int min{INT_MAX};
 
-    int median = ((nums[nums.size() / 2] + nums[nums.size() / 2 - 1]) / 2) + 1;
+    std::string line; std::ifstream file("data2.txt");
+
+    while (std::getline(file, line)) {
+        int nail = std::stoi(line);
+        nails.push_back(nail);
+
+        min = std::min(min, nail);
+    }
 
     int ans{};
 
-    for (const auto& num: nums) ans += abs(num - median);
+    for (const auto& nail: nails) {
+        ans += nail - min;
+    }
     std::cout << ans;
 }
