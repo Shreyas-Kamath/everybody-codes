@@ -15,21 +15,14 @@ struct Node {
     std::unique_ptr<Node> right = nullptr;
 };
 
-struct NodeInfo {
-    Node* node = nullptr;
-    Node* parent = nullptr;
-
-    bool is_left;
-};
-
-NodeInfo insert(std::unique_ptr<Node>& root, std::unique_ptr<Node> new_node, Node* parent = nullptr, bool is_left = false) {
+void insert(std::unique_ptr<Node>& root, std::unique_ptr<Node> new_node) {
     if (root == nullptr) {
         root = std::move(new_node);
-        return { root.get(), parent, is_left };
+        return;
     }
 
-    if (new_node->rank < root->rank) return insert(root->left, std::move(new_node), root.get(), true);
-    else return insert(root->right, std::move(new_node), root.get(), false);
+    if (new_node->rank < root->rank) insert(root->left, std::move(new_node));
+    else insert(root->right, std::move(new_node));
 }
 
 const auto get_message(Node* root) {
@@ -62,32 +55,15 @@ const auto get_message(Node* root) {
     return message;
 }
 
-void swap_nodes(auto& node_map, int id, std::unique_ptr<Node>& root_left, std::unique_ptr<Node>& root_right) {
+void swap_nodes(auto& node_map, int id) {
     if (!node_map.contains(id)) return;
 
     auto& [left_node, right_node] = node_map[id];
 
-    if (left_node.parent == nullptr && right_node.parent == nullptr) {
-        std::swap(root_left, root_right);
-        std::swap(left_node.node, right_node.node);
-        return;
-    }
-
-    auto swap_child = [](NodeInfo& from, NodeInfo& to) {
-        std::unique_ptr<Node>* from_ptr = nullptr;
-        
-        if (from.parent) from_ptr = from.is_left ? &from.parent->left : &from.parent->right;
-
-        std::unique_ptr<Node>* to_ptr = nullptr;
-        if (to.parent) to_ptr = to.is_left ? &to.parent->left : &to.parent->right;
-
-        if (from_ptr && to_ptr) std::swap(*from_ptr, *to_ptr);
-    };
-
-    swap_child(left_node, right_node);
-    swap_child(right_node, left_node);
-
-    std::swap(left_node.node, right_node.node);
+    std::swap(left_node->letter, right_node->letter);
+    std::swap(left_node->rank, right_node->rank);
+    std::swap(left_node->left, right_node->left);
+    std::swap(left_node->right, right_node->right);
 }
 
 int main() {
@@ -95,7 +71,7 @@ int main() {
 
     std::string line; std::ifstream file("3.txt");
 
-    std::unordered_map<int, std::pair<NodeInfo, NodeInfo>> node_map;
+    std::unordered_map<int, std::pair<Node*, Node*>> node_map;
 
     std::unique_ptr<Node> root_left = nullptr;
     std::unique_ptr<Node> root_right = nullptr;
@@ -124,15 +100,17 @@ int main() {
             new_right->rank = right_rank;
             new_right->letter = right_letter;
 
-            node_map[id] = { insert(root_left, std::move(new_left)), insert(root_right, std::move(new_right)) };
+            node_map[id] = { new_left.get(), new_right.get() };
+
+            insert(root_left, std::move(new_left));
+            insert(root_right, std::move(new_right));
         }
 
         else {
             std::istringstream iss(line); std::string command;
             iss >> command >> command;
 
-            swap_nodes(node_map, std::stoi(command), root_left, root_right);
-
+            swap_nodes(node_map, std::stoi(command));
         }
 
     }
