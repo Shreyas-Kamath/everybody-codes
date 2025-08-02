@@ -1,40 +1,47 @@
-#include <vector>
-#include <unordered_map>
 #include <fstream>
-#include <iostream>
-#include <string>
 #include <sstream>
+#include <unordered_map>
+#include <vector>
+
+int sim(const auto& map, auto& counts, int days) {
+
+    for (int i{}; i < days; ++i) {
+        std::unordered_map<char, long long> new_counts;
+        
+        for (const auto& [termite, freq]: counts) {
+            for (const auto& child: map.at(termite)) new_counts[child] += freq;
+        }
+        counts = std::move(new_counts);
+    }
+
+    int sum{};
+    for (const auto& [_, freq]: counts) sum += freq;
+
+    return sum;
+}
 
 int main() {
-    std::string line; std::ifstream in("2.txt");
+    std::string line; std::ifstream in("2.txt"); std::string child;
 
-    std::unordered_map<std::string, int> counts;
-    std::unordered_map<std::string, std::vector<std::string>> children;
+    std::unordered_map<char, std::vector<char>> termite_map;
+    std::unordered_map<char, long long> termite_counts;
 
-    counts["Z"] = 1;
+    termite_counts['Z'] = 1;
 
-    while (std::getline(in, line)) {
-        auto find = line.find(":");
+    while (std::getline(in, line))
+    {
+        char parent = line.front();
 
-        std::string parent = line.substr(0, find);
+        std::istringstream iss(line.substr(2));
 
-        std::string kids = line.substr(find + 1);
+        std::vector<char> children;
 
-        std::istringstream iss(kids); std::string kid;
+        while (std::getline(iss, child, ',')) children.push_back(child.front());
 
-        while (std::getline(iss, kid, ',')) children[parent].push_back(kid);
+        termite_map[parent] = std::move(children);
     }
+    
+    const int days{ 10 };
 
-    for (int i{}; i < 10; ++i) {
-        std::unordered_map<std::string, int> newCounts;
-        for (const auto& [parent, count]: counts) {
-            for (const auto& child: children[parent]) newCounts[child] += count;
-        }
-        counts = std::move(newCounts);
-    }
-
-    int total{};
-
-    for (const auto& [parent, count]: counts) total += count;
-    std::cout << total;
+    printf("%d", sim(termite_map, termite_counts, days));
 }

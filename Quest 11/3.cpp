@@ -1,50 +1,64 @@
-#include <vector>
-#include <unordered_map>
 #include <fstream>
-#include <iostream>
-#include <string>
 #include <sstream>
+#include <unordered_map>
+#include <vector>
+#include <chrono>
+#include <iostream>
+
+long long sim(const auto& map, int days, const std::string& parent) {
+    std::unordered_map<std::string, long long> counts;
+    ++counts[parent];
+
+    for (int i{}; i < days; ++i) {
+        std::unordered_map<std::string, long long> new_counts;
+        
+        for (const auto& [termite, freq]: counts) {
+            for (const auto& child: map.at(termite)) new_counts[child] += freq;
+        }
+        counts = std::move(new_counts);
+    }
+
+    long long sum{};
+
+    for (const auto& [_, freq]: counts) sum += freq;
+
+    return sum;
+}
 
 int main() {
-    std::string line; std::ifstream in("3.txt");
+    std::string line; std::ifstream in("3.txt"); std::string child;
 
-    long long max{LLONG_MIN}; long long min{LLONG_MAX};
+    auto start = std::chrono::high_resolution_clock::now();
 
-    std::unordered_map<std::string, long long> counts;
-    std::unordered_map<std::string, std::vector<std::string>> children;
-    std::vector<std::string> iters;
+    std::unordered_map<std::string, std::vector<std::string>> termite_map;
+    std::unordered_map<std::string, long long> termite_counts;
 
-    while (std::getline(in, line)) {
-        auto find = line.find(":");
+    while (std::getline(in, line))
+    {
 
-        std::string parent = line.substr(0, find);
-        iters.push_back(parent);
+        std::string parent = line.substr(0, 3);
 
-        std::string kids = line.substr(find + 1);
+        std::istringstream iss(line.substr(4));
 
-        std::istringstream iss(kids); std::string kid;
+        std::vector<std::string> children;
 
-        while (std::getline(iss, kid, ',')) children[parent].push_back(kid);
+        while (std::getline(iss, child, ',')) children.push_back(child);
+
+        termite_map[parent] = std::move(children);
+    }
+    
+    const int days{ 20 }; long long max{ LLONG_MIN }, min{ LLONG_MAX };
+
+    for (const auto& [parent, _]: termite_map) {
+        const auto population = sim(termite_map, days, parent);
+
+        max = std::max(max, population);
+        min = std::min(min, population);
     }
 
-    for (const auto& iter: iters) {
-        counts.clear();
-        counts[iter] = 1;
+    auto end = std::chrono::high_resolution_clock::now();
 
-        for (int i{}; i < 20; ++i) {
-            std::unordered_map<std::string, long long> newCounts;
-            for (const auto& [parent, count]: counts) {
-                for (const auto& child: children[parent]) newCounts[child] += count;
-            }
-            counts = std::move(newCounts);
-        }
-        
-        long long total{};
-        for (const auto& [parent, count]: counts) total += count;
+    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
-        max = std::max(max, total);
-        min = std::min(min, total);
-    }
-
-    std::cout << max - min;
+    printf("%lld", max - min);
 }
