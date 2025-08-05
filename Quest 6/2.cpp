@@ -1,66 +1,51 @@
-#include <iostream>
-#include <string>
-#include <unordered_map>
 #include <fstream>
+#include <unordered_map>
+#include <string>
+#include <ranges>
 #include <vector>
-#include <sstream>
-#include <memory>
 
-struct Node {
-    std::string val{};
-    std::vector<Node*> children{};
-};
-
-void dfs(Node* root, std::string& path, int depth, std::unordered_map<int, std::vector<std::string>>& lengths) {
-    path.push_back(root->val[0]);
-
-    if (root->val == "@") {
-        lengths[depth].emplace_back(path);
-    } else {
-        for (auto& child : root->children) dfs(child, path, depth + 1, lengths);
+void dfs(const std::unordered_map<std::string, std::vector<std::string>>& map, std::unordered_map<int, std::vector<std::string>>& depth_map, int depth, const std::string& root, std::string& path) {
+    if (root == "@") {
+        depth_map[depth].push_back(path);
+        return;
     }
-    path.pop_back();
+
+    if (auto it = map.find(root); it != map.end()) {
+        for (const auto& child: it->second) {
+            path.push_back(child.front());
+            dfs(map, depth_map, depth + 1, child, path);
+            path.resize(path.size() - 1);
+        }
+    }
 }
 
-
 int main() {
-    std::string line; std::ifstream in("2.txt");
+    std::fstream in("2.txt"); std::string line;
 
-    std::unordered_map<int, std::vector<std::string>> lengths;
-    std::unordered_map<std::string, std::unique_ptr<Node>> nodes;
+    std::unordered_map<std::string, std::vector<std::string>> map;
+    std::unordered_map<int, std::vector<std::string>> depth_map;
 
-    while (std::getline(in, line)) {
-        auto pos = line.find(':');
+    std::string root = "RR";
+    std::string path = root;
 
-        std::string parent = line.substr(0, pos);
-        std::string childrenStr = line.substr(pos + 1);
+    while (std::getline(in, line))
+    {
+        auto sep = line.find(':');
 
-        if (!nodes.contains(parent)) {
-            nodes[parent] = std::make_unique<Node>();
-            nodes[parent]->val = parent;
-        }
+        std::string parent = line.substr(0, sep);
+        
+        auto children = line.substr(sep + 1)
+        | std::views::split(',')
+        | std::ranges::to<std::vector<std::string>>();
 
-        std::istringstream iss(childrenStr);
-        std::string child;
+        map[parent] = std::move(children);
+    }
+    
+    dfs(map, depth_map, 0, root, path);
 
-        Node* parent_node = nodes[parent].get();
-
-        while (std::getline(iss, child, ',')) {
-            if (!nodes.contains(child)) {
-                nodes[child] = std::make_unique<Node>();
-                nodes[child]->val = child;
-            }
-
-            parent_node->children.emplace_back(nodes[child].get());
+    for (const auto& vec: depth_map | std::views::values) {
+        if (vec.size() == 1) {
+            printf("%s", vec.front().substr(1).c_str());
         }
     }
-
-    std::string path{};
-    dfs(nodes["RR"].get(), path, 0, lengths);
-
-    for (const auto& [depth, paths]: lengths) {
-        if (paths.size() == 1) { std::cout << paths[0]; break; }
-    }
-
-    return 0;
 }
