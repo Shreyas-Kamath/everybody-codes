@@ -1,0 +1,46 @@
+#include <fstream>
+#include <sstream>
+#include <unordered_map>
+#include <vector>
+#include <ranges>
+#include <algorithm>
+
+int sim(const auto& map, auto& counts, int days) {
+
+    for (int i{}; i < days; ++i) {
+        std::unordered_map<char, long long> new_counts;
+        
+        for (const auto& [termite, freq]: counts) {
+            for (const auto& child: map.at(termite)) new_counts[child] += freq;
+        }
+        counts = std::move(new_counts);
+    }
+
+    return std::ranges::fold_left(counts | std::views::values, 0, std::plus<long long>{});
+}
+
+int main() {
+    std::string line; std::ifstream in("2.txt"); std::string child;
+
+    std::unordered_map<char, std::vector<char>> termite_map;
+    std::unordered_map<char, long long> termite_counts;
+
+    termite_counts['Z'] = 1;
+
+    while (std::getline(in, line))
+    {
+        char parent = line.front();
+
+        std::istringstream iss(line.substr(2));
+
+        std::vector<char> children;
+
+        while (std::getline(iss, child, ',')) children.push_back(child.front());
+
+        termite_map[parent] = std::move(children);
+    }
+    
+    const int days{ 10 };
+
+    printf("%lld", sim(termite_map, termite_counts, days));
+}
