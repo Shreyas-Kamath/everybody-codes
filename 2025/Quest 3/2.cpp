@@ -1,8 +1,6 @@
 #include <unordered_set>
 #include <fstream>
-#include <sstream>
 #include <string>
-#include <numeric>
 #include <iostream>
 #include <ranges>
 #include <algorithm>
@@ -18,9 +16,8 @@ int main() {
 
     std::getline(in, line);
 
-    std::istringstream iss(line); std::string n;
-
-    while (std::getline(iss, n, ',')) nums.emplace(std::stoi(n));
+    for (const auto n: line | views::split(',')) 
+        nums.emplace(std::stoi(std::string(n.begin(), n.end())));
     
     std::vector<int> vec(nums.begin(), nums.end());
 

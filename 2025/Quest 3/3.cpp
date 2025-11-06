@@ -1,6 +1,5 @@
 #include <unordered_map>
 #include <fstream>
-#include <sstream>
 #include <string>
 #include <iostream>
 #include <ranges>
@@ -16,10 +15,8 @@ int main() {
 
     std::getline(in, line);
 
-    std::istringstream iss(line); std::string n;
-
-    while (std::getline(iss, n, ',')) {
-        int val = std::stoi(n);
+    for (const auto n: line | views::split(',')) {
+        int val = std::stoi(std::string(n.begin(), n.end()));
         ++freq[val];
     }
     
