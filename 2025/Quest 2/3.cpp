@@ -33,8 +33,6 @@ constexpr bool check(const Complex point) {
 }
 
 int main() {
-    auto t1 = std::chrono::high_resolution_clock::now();
-
     constexpr Complex start = {-4511, -68892};
     constexpr Complex end = start + Complex(1000, 1000);
 
@@ -46,10 +44,6 @@ int main() {
             if (check(c)) ++count;
         }
     }
-
-    auto t2 = std::chrono::high_resolution_clock::now();
-
-    std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1) << '\n';
 
     printf("%d", count);
 }
