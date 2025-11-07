@@ -15,5 +15,5 @@ int main() {
         
     }
 
-    std::cout << ans * 2025;
+    std::cout << (long long)(ans * 2025);
 }
